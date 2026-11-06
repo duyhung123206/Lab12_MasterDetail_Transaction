@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Windows.Forms;
 using Lab11_CRUD_StoredProcedure.BUS;
+using Lab11_CRUD_StoredProcedure.DTO;
 
 namespace Lab12_MasterDetail_Transaction
 {
@@ -23,8 +25,13 @@ namespace Lab12_MasterDetail_Transaction
         {
             try
             {
-                // Tải toàn bộ danh sách sinh viên lên bảng trên (Master)
                 dataGridView1.DataSource = svBus.LayDanhSach();
+
+                if (dataGridView1.Rows.Count > 0)
+                {
+                    dataGridView1.Rows[0].Selected = true;
+                    LoadDetailData(dataGridView1.Rows[0]);
+                }
             }
             catch (Exception ex)
             {
@@ -32,38 +39,120 @@ namespace Lab12_MasterDetail_Transaction
             }
         }
 
-        // Xử lý sự kiện khi click vào một dòng trên bảng Master (dataGridView1)
-        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        private void LoadDetailData(DataGridViewRow row)
         {
-            if (e.RowIndex >= 0)
+            if (row != null && row.Cells["MaSV"].Value != null)
             {
-                DataGridViewRow row = dataGridView1.Rows[e.RowIndex];
-                if (row.Cells["MaKhoa"].Value != null)
+                string maSV = row.Cells["MaSV"].Value.ToString();
+                dataGridView2.DataSource = svBus.GetDangKyByMaSV(maSV);
+
+                if (label1 != null)
                 {
-                    string maKhoa = row.Cells["MaKhoa"].Value.ToString();
-                    // Lọc dữ liệu theo khoa và đổ xuống bảng Detail (dataGridView2)
-                    dataGridView2.DataSource = svBus.GetByDepartment(maKhoa);
+                    label1.Text = $"Danh sách học phần của sinh viên: {row.Cells["HoTen"].Value}";
                 }
             }
         }
 
-        // Khớp sự kiện CellContentClick tự động gọi từ Designer
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            dataGridView1_CellClick(sender, e);
+            if (e.RowIndex >= 0) LoadDetailData(dataGridView1.Rows[e.RowIndex]);
         }
 
-        // Khớp sự kiện SelectionChanged tự động gọi từ Designer
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0) LoadDetailData(dataGridView1.Rows[e.RowIndex]);
+        }
+
         private void dataGridView1_SelectionChanged(object sender, EventArgs e)
         {
             if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index >= 0)
             {
-                DataGridViewRow row = dataGridView1.CurrentRow;
-                if (row.Cells["MaKhoa"].Value != null)
+                LoadDetailData(dataGridView1.CurrentRow);
+            }
+        }
+
+        private void btnThemTransaction_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                bool kq = svBus.ThemSinhVienVaDangKy("24001298", "Nguyễn Văn A", "10/05/2004", true, new List<string> { "HP01", "HP02" });
+                if (kq)
                 {
-                    string maKhoa = row.Cells["MaKhoa"].Value.ToString();
-                    dataGridView2.DataSource = svBus.GetByDepartment(maKhoa);
+                    MessageBox.Show("Thêm sinh viên và học phần thành công qua Transaction!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadMasterData();
                 }
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+        }
+
+        private void btnTestRollback_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                svBus.TestRollbackTransaction("24001299", "Test Rollback", new List<string> { "HP01", "ERR_HP" });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Giao dịch thất bại và đã hoàn tác (Rollback)!\n" + ex.Message, "Kiểm chứng Rollback", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                LoadMasterData();
+            }
+        }
+
+        private void btnChuyenKhoa_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (dataGridView1.CurrentRow != null)
+                {
+                    string maSV = dataGridView1.CurrentRow.Cells["MaSV"].Value.ToString();
+                    svBus.ChuyenKhoaSinhVien(maSV, "CNTT", "ATTT");
+                    MessageBox.Show("Chuyển khoa thành công qua Transaction!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadMasterData();
+                }
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+        }
+
+        private void btnXoaKhoaAnToan_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                svBus.XoaKhoaAnToan("CNTT");
+                MessageBox.Show("Xóa khoa an toàn thành công (Không có dữ liệu mồ côi)!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                LoadMasterData();
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+        }
+
+        private void btnCapNhatDiem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                List<DangKyDTO> dsCapNhat = new List<DangKyDTO>
+                {
+                    new DangKyDTO { MaSV = "24001296", MaHP = "HP01", Diem = 8.5m },
+                    new DangKyDTO { MaSV = "24001296", MaHP = "HP02", Diem = 11.0m } // Lỗi kích hoạt Rollback
+                };
+                svBus.CapNhatDiemHangLoat(dsCapNhat);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Giao dịch cập nhật điểm thất bại và đã hoàn tác (Rollback)!\n" + ex.Message, "Kiểm chứng Rollback", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                LoadMasterData();
+            }
+        }
+
+        private void btnKiemSoatXungDot_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                DangKyDTO dtoTest = new DangKyDTO { MaSV = "24001296", MaHP = "HP01", Diem = 9.0m, RowVersion = new byte[] { 1, 2, 3, 4 } };
+                svBus.KiemSoatXungDotCapNhat(dtoTest);
+                MessageBox.Show("Cập nhật thành công, không có xung đột!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Phát hiện xung đột cập nhật:\n" + ex.Message, "Lỗi đồng thời", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
     }
