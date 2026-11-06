@@ -1,0 +1,45 @@
+<?xml version="1.0" standalone="yes"?>
+<NewDataSet>
+  <xs:schema id="NewDataSet" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xs:element name="NewDataSet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true">
+      <xs:complexType>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="SinhVien">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="MaSV" type="xs:string" minOccurs="0" />
+                <xs:element name="HoTen" type="xs:string" minOccurs="0" />
+                <xs:element name="NgaySinh" type="xs:dateTime" minOccurs="0" />
+                <xs:element name="GioiTinh" type="xs:boolean" minOccurs="0" />
+                <xs:element name="MaKhoa" type="xs:string" minOccurs="0" />
+                <xs:element name="DiemTB" type="xs:float" minOccurs="0" />
+                <xs:element name="Email" type="xs:string" minOccurs="0" />
+                <xs:element name="IsActive" type="xs:boolean" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <SinhVien>
+    <MaSV>24001296</MaSV>
+    <HoTen>Nguyễn Duy Hưng</HoTen>
+    <NgaySinh>2004-01-01T00:00:00+07:00</NgaySinh>
+    <GioiTinh>true</GioiTinh>
+    <MaKhoa>CNTT</MaKhoa>
+    <DiemTB>8.5</DiemTB>
+    <Email>hung@gmail.com</Email>
+    <IsActive>true</IsActive>
+  </SinhVien>
+  <SinhVien>
+    <MaSV>24001297</MaSV>
+    <HoTen>Nguyễn Văn Hiếu</HoTen>
+    <NgaySinh>2004-05-12T00:00:00+07:00</NgaySinh>
+    <GioiTinh>true</GioiTinh>
+    <MaKhoa>CNTT</MaKhoa>
+    <DiemTB>8</DiemTB>
+    <Email>hieu@gmail.com</Email>
+    <IsActive>true</IsActive>
+  </SinhVien>
+</NewDataSet>
